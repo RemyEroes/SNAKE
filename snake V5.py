@@ -70,17 +70,12 @@ class SNAKE:
             'Graphics/skin/'+str(self.skin)+'/body_bl.png').convert_alpha()
 
         # SOUND
-        self.crunch_sound = pygame.mixer.Sound('Sound/crunch.wav')
-        self.avale_sound = pygame.mixer.Sound('Sound/avale_2.mp3')
+        self.eat_sound = self.chose_sound_from_fruit()
 
     def draw_snake(self):
         self.update_head_graphics()
         self.update_tail_graphics()
-        # for block in self.body:
-        #     x_pos=int(block.x*cell_size)
-        #     y_pos=int(block.y*cell_size)
-        #     block_rect = pygame.Rect(x_pos,y_pos,cell_size,cell_size)
-        #     pygame.draw.rect(screen,(78,170,188),block_rect)
+        
 
         # pour chaque block et son index
         for index, block in enumerate(self.body):
@@ -157,15 +152,24 @@ class SNAKE:
     def add_block(self):
         self.new_block = True
 
-    def play_crunch_sound(self):
-        self.crunch_sound.play()
+    def play_eat_sound(self):
+        self.eat_sound.play()
     
-    def play_avale_sound(self):
-        self.avale_sound.play()
 
     def reset_snake(self):
         self.body = [Vector2(3, 7), Vector2(2, 7), Vector2(1, 7)]
 
+    def get_fruit_from_file(self):
+        # change le fruit dans le fichier
+        fichier = open("current_fruit.txt", "r")
+        contenu = fichier.read()
+        return str(contenu)
+        
+    def chose_sound_from_fruit(self):
+        self.eat_sound = pygame.mixer.Sound('Sound/eat-'+self.get_fruit_from_file()+'.mp3')
+        
+
+    
     # def update_skin_from_file(self):
     #     fichier = open("current_skin.txt", "r")
     #     contenu = fichier.read()
@@ -225,7 +229,7 @@ class OBSTACLE:
 class MENU:
     def __init__(self):
         self.volume = 0.5
-        self.difficulty = 'facile'
+        self.difficulty = 'aucun'
         self.map = 'classic'
         self.skin = 'bleu'
         self.fruit = 'pomme'
@@ -440,7 +444,7 @@ class MENU:
         screen.blit(fruit_surface, fruit_rect)
 
     def change_fruit_plus(self):
-        fruits = ['pomme', 'banane']
+        fruits = ['pomme', 'banane', 'kiwi', 'pasteque', 'raisin', 'fraise', 'orange']
         # combien y a t'il de fruit
         nb_fruit_max = len(fruits)
 
@@ -459,6 +463,7 @@ class MENU:
             # CHANGER LE fruit
             del main_game.fruit
             main_game.fruit = FRUIT(main_game.update_fruit_from_file())
+            main_game.snake.chose_sound_from_fruit() # CHANGE LE SONS 
 
         else:
             index_fruit = 0
@@ -469,9 +474,10 @@ class MENU:
             # CHANGER LE fruit
             del main_game.fruit
             main_game.fruit = FRUIT(main_game.update_fruit_from_file())
+            main_game.snake.chose_sound_from_fruit() # CHANGE LE SONS 
 
     def change_fruit_moins(self):
-        fruits = ['pomme', 'banane']
+        fruits = ['pomme', 'banane', 'kiwi', 'pasteque', 'raisin', 'fraise', 'orange']
         # combien y a t'il de fruit
         nb_fruit_max = len(fruits)
 
@@ -490,6 +496,7 @@ class MENU:
             # CHANGER LE fruit
             del main_game.fruit
             main_game.fruit = FRUIT(main_game.update_fruit_from_file())
+            main_game.snake.chose_sound_from_fruit() # CHANGE LE SONS 
 
         else:
             index_fruit = nb_fruit_max-1
@@ -498,8 +505,9 @@ class MENU:
             self.update_fruit(fruits[index_fruit])
 
             # CHANGER LE fruit
-            del main_game.snake
-            main_game.snake = SNAKE(main_game.update_fruit_from_file())
+            del main_game.fruit
+            main_game.fruit = FRUIT(main_game.update_fruit_from_file())
+            main_game.snake.chose_sound_from_fruit() # CHANGE LE SONS 
 
     def update_fruit(self, fruit):
         # change le fruit dans le fichier
@@ -546,7 +554,7 @@ class MENU:
 class GAMEOVER:
     def __init__(self):
         self.volume = .5
-        self.difficulty = 'facile'
+        self.difficulty = 'aucun'
         self.facondemourir = 'mur'
 
     # def draw_menu(self):
@@ -683,7 +691,7 @@ class MAIN:
     def __init__(self):
         self.snake = SNAKE(self.update_skin_from_file())
         self.fruit = FRUIT(self.update_fruit_from_file())
-        self.difficulty = 'difficile'
+        self.difficulty = 'aucun' #----------------------------------------------------------------------------------- DIFFICULTÉ DU JEU
         self.obstacles = OBSTACLE(self.difficulty)
 
     def update(self):
@@ -706,7 +714,7 @@ class MAIN:
             # ajouter un block au serpent            
             self.snake.add_block()
             # jouer le son crunch
-            self.snake.play_crunch_sound()
+            self.snake.play_eat_sound()
 
         # si le fruit apparait sur le corps du serpent
         for block in self.snake.body[1:]:
@@ -824,17 +832,14 @@ pygame.init()
 
 cell_size = 40
 cell_number = 20
-screen = pygame.display.set_mode(
-    (cell_number*cell_size, cell_number*cell_size))
+screen = pygame.display.set_mode((cell_number*cell_size, cell_number*cell_size)) # TAILLE DE LA FENETRE 
 clock = pygame.time.Clock()  # objet clock
 
 game_font = pygame.font.Font('Font/SuperMario256.ttf', 50)
 game_font_small = pygame.font.Font('Font/SuperMario256.ttf', 30)
-tete_de_mort = pygame.image.load(
-    'Graphics/death-skull.png').convert_alpha()  # image tete de mort
+tete_de_mort = pygame.image.load('Graphics/death-skull.png').convert_alpha()  # image tete de mort
 
-grass = pygame.image.load(
-    'Graphics/map/classic/classic.jpeg').convert_alpha()  # image grass
+grass = pygame.image.load('Graphics/map/classic/classic.jpeg').convert_alpha()  # image grass
 
 SCREEN_UPDATE = pygame.USEREVENT
 # TIMER qui fait le screen update toutes les 150 ms
@@ -847,7 +852,9 @@ game_over = GAMEOVER()
 
 
 def play_game():
+    main_game.snake.chose_sound_from_fruit() # CHANGE LE SONS 
     while True:
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # si on click sur la croix on quite le jeu
                 pygame.quit()
