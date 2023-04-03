@@ -6,15 +6,15 @@ import re
 
 
 """ ---------------------------------------------------------- """
-class TIMMER:
-    def init(self):
+class TIMER:
+    def __init__(self):
         self.clock = pygame.time.Clock()
         self.start_time = pygame.time.get_ticks()
         # Initialise la bibliothèque Pygame pour la gestion des polices d'écriture
         pygame.font.init()
 
         # Initialise la police d'écriture pour le texte du timer
-        self.font = pygame.font.Font(None, 36)
+        self.font = pygame.font.Font('Font/SuperMario256.ttf', 30)
 
     def draw_timer(self):
         # Mesure le temps écoulé depuis le début de la partie
@@ -25,12 +25,13 @@ class TIMMER:
         elapsed_seconds = (elapsed_time // 1000) % 60
 
         # Formatte le temps en une chaîne de caractères au format "mm:ss"
-        time_text = self.font.render("Temps écoulé : {:02d}:{:02d}".format(elapsed_minutes, elapsed_seconds), True, (0, 0, 0))
-        screen.blit(time_text, (10, 10))
-
-
-    def get_start_time(self):
-        return self.start_time
+        time_text = self.font.render("{:02d}:{:02d}".format(elapsed_minutes, elapsed_seconds), True, (255, 255, 255))
+        screen.blit(time_text, (700, 700))
+        
+        def get_start_time(self):
+            return self.start_time
+        
+        
 
 class FRUIT:
     def __init__(self, fruit):
@@ -983,7 +984,7 @@ class MAIN:
         ## ON DEFINIT QUELLE DIFFOCULTE ON UTILISE
         #if self.difficulty == 'obstacle-1' or self.difficulty == 'obstacle-2' or self.difficulty == 'extreme':
         self.obstacles = OBSTACLE(self.difficulty)
-        
+        self.timer = TIMER()
         self.map =  self.update_map_from_file()
 
     def update(self):
@@ -1000,6 +1001,8 @@ class MAIN:
         print(self.difficulty)
         if self.difficulty == 'obstacle-1' or self.difficulty == 'obstacle-2' or self.difficulty == 'extreme':
             self.obstacles.draw_obstacle() # dessine les obstacles obstacles
+        
+        self.timer.draw_timer() #dessine le timer
         
 
     def check_collision(self):
@@ -1172,7 +1175,7 @@ pygame.time.set_timer(SCREEN_UPDATE, 150)
 menu_game = MENU()
 main_game = MAIN()
 game_over = GAMEOVER()
-timmer = TIMMER()
+timer = TIMER()
 
 
 
