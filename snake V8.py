@@ -273,7 +273,7 @@ class MENU:
     def __init__(self):
         self.volume = 0.5
         self.difficulty = 'aucun'
-        self.map = 'lune'
+        self.map = 'classic'
         self.skin = 'bleu'
         self.fruit = 'pomme'
         self.difficulty = 'aucun'
@@ -618,7 +618,7 @@ class MENU:
         screen.blit(map_surface, map_rect)
 
     def change_map_plus(self):
-        maps = ['lune', 'lune']
+        maps = ['classic', 'desert','lune']
         # combien y a t'il de map
         nb_map_max = len(maps)
 
@@ -647,7 +647,7 @@ class MENU:
             main_game.update_map_from_file()
 
     def change_map_moins(self):
-        maps = ['lune', 'lune']
+        maps = ['classic', 'desert','lune']
         # combien y a t'il de map
         nb_map_max = len(maps)
 
@@ -995,8 +995,7 @@ class MAIN:
         self.fruit = FRUIT(self.update_fruit_from_file())
         # ----------------------------------------------------------------------------------- DIFFICULTÉ DU JEU
         self.difficulty = self.update_diff_from_file()
-        # ON DEFINIT QUELLE DIFFOCULTE ON UTILISE
-        # if self.difficulty == 'obstacle-1' or self.difficulty == 'obstacle-2' or self.difficulty == 'extreme':
+        # ON DEFINIT QUELLE DIFFiCULTE ON UTILISE
         self.obstacles = OBSTACLE(self.difficulty)
         self.timer = TIMER()
         self.map = self.update_map_from_file()
@@ -1054,6 +1053,7 @@ class MAIN:
                 game_over.facondemourir = str("Ouich ! je me suis mordu")
                 print(game_over.facondemourir)
                 self.game_over()
+
 
         # si le serpent touche une case obstacle
         # UNIQUEMENT SI DIFFICULTE OBSTACLES
@@ -1161,6 +1161,7 @@ class MAIN:
         print(contenu)
 
         map_world = contenu
+        self.map= str(map_world)
         return map_world
 
     def update_diff_from_file(self):
@@ -1190,9 +1191,27 @@ tete_de_mort = pygame.image.load(
 
 SCREEN_UPDATE = pygame.USEREVENT
 # TIMER qui fait le screen update toutes les 150 ms
+# fps_game = 150
+# pygame.time.set_timer(SCREEN_UPDATE, fps_game)
 
-pygame.time.set_timer(SCREEN_UPDATE, 150)
-
+# FONCTION QUI CHOISIT LE TAUX DE RAFRAICHISSEMENT ( DONC LA VITESSE) du jeu
+def change_fps():
+    global fps_game
+    
+    # on va chercher la difficulté dans le fichier:
+    fichier = open("current_diff.txt", "r")
+    contenu = fichier.read()
+    diff = str(contenu)
+    
+    #en fonction de la difficulté on update la vitesse entre 120 et 150 ms
+    if diff=='aucun' or diff=='obstacle-1' or diff=='obstacle-2':
+        fps_game = 150
+    elif diff=='vitesse +' or diff=='extreme':
+        fps_game = 120
+    
+    # On initiatlise le timer en fonction
+    pygame.time.set_timer(SCREEN_UPDATE, fps_game)
+    print(fps_game)
 
 
 
@@ -1206,6 +1225,7 @@ def play_game():
     main_game.snake.chose_sound_from_fruit()  # CHANGE LE SONS
     main_game.update_map_from_file()  # change la map
     main_game.update_diff_from_file()  # change la difficulté
+    change_fps() # en fonction de la difficulté on regle la vitesse du jeu
     while True:
 
         for event in pygame.event.get():
@@ -1230,7 +1250,7 @@ def play_game():
                 if event.key == pygame.K_LEFT:  # fleche de gauche
                     if main_game.snake.direction.x != 1:
                         main_game.snake.direction = Vector2(-1, 0)
-
+                        
         screen.fill((169, 190, 129))  # couleur du background
         main_game.draw_elements()
         pygame.display.update()
