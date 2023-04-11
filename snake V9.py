@@ -28,12 +28,14 @@ class TIMER:
         elapsed_seconds = (elapsed_time // 1000) % 60
 
         # Background time pancarte
-        pancarte = pygame.image.load('Graphics/planche-score.png').convert_alpha()  # image de la planche
+        pancarte = pygame.image.load(
+            'Graphics/planche-score.png').convert_alpha()  # image de la planche
         pancarte_rect = pygame.rect.Rect(680, 680, 120, 120)
-        screen.blit(pancarte,pancarte_rect)
+        screen.blit(pancarte, pancarte_rect)
 
         # Formatte le temps en une chaîne de caractères au format "mm:ss"
-        time_text = self.font.render("{:02d}:{:02d}".format(elapsed_minutes, elapsed_seconds), True, (255, 255, 255))
+        time_text = self.font.render("{:02d}:{:02d}".format(
+            elapsed_minutes, elapsed_seconds), True, (255, 255, 255))
         screen.blit(time_text, (700, 700))
 
         def reset_timer(self):
@@ -49,26 +51,41 @@ class FRUIT:
         self.randomize()
 
     def draw_fruit(self):
-        fruit = pygame.image.load('Graphics/fruit/'+str(self.fruit)+'.png').convert_alpha()  # image de fruit
+        fruit = pygame.image.load(
+            'Graphics/fruit/'+str(self.fruit)+'.png').convert_alpha()  # image de fruit
 
         # les positions sont déterminées pas un certain nombre de fois la taille d'une cellule
-        fruit_rect = pygame.Rect(int(self.pos.x*cell_size), int(self.pos.y*cell_size), cell_size, cell_size)
+        fruit_rect = pygame.Rect(
+            int(self.pos.x*cell_size), int(self.pos.y*cell_size), cell_size, cell_size)
         screen.blit(fruit, fruit_rect)  # image de fruit
         # pygame.draw.rect(screen,(199,57,48),fruit_rect)
-        
 
     def randomize(self):  # creer un element a une position random
         self.x = random.randint(0, cell_number-1)  # random x
         self.y = random.randint(0, cell_number-1)  # random y
         self.pos = Vector2(self.x, self.y)
-        #print("postion --> "+ str(self.pos))
-        
-        
+        # print("postion --> "+ str(self.pos))
+
         # si le fruit est dans le carré en bas a  droit avec le score: on replace le fruit
-        if self.x>=17 and self.y>=17:
-            #print("postion interdite:"+str(self.pos)+" --> RANDOMIZE à nouveau")
+        if self.x >= 17 and self.y >= 17:
+            # print("postion interdite:"+str(self.pos)+" --> RANDOMIZE à nouveau")
             self.randomize()
 
+        with open('obstacles.txt', 'r') as f:
+            lines = f.readlines()
+            clean_lines = [line.strip()
+                           for line in lines if re.search(r'\d', line)]
+            for line in clean_lines:
+                numbers = re.findall(r'\d+', line)
+
+                # definition de y,x et num obstacle
+                pos_x = numbers[0]
+                pos_y = numbers[1]
+
+                # si le fruit est sur un des obstacles: on replace le fruit
+                if self.x == pos_x and self.y == pos_y:
+                    print("fruit sur un obstacle --> randomize")
+                    self.randomize()
 
 
 class SNAKE:
@@ -210,43 +227,41 @@ class SNAKE:
         fichier.close()
 
     def chose_sound_from_fruit(self):
-        self.eat_sound = pygame.mixer.Sound('Sound/eat-'+self.get_fruit_from_file()+'.mp3')
-
+        self.eat_sound = pygame.mixer.Sound(
+            'Sound/eat-'+self.get_fruit_from_file()+'.mp3')
 
     def update_score_in_file(self):
         # change le score dans le fichier
         nom_fichier = "score/current_score.txt"
-        nouveau_score = str(len(self.body)-2) # TAILLE DU SERPENT - 2 pour obtenir le score
-        
+        # TAILLE DU SERPENT - 2 pour obtenir le score
+        nouveau_score = str(len(self.body)-2)
+
         with open(nom_fichier, 'w') as f:
             # Écriture su nouveau score dans le fichier
             f.write(nouveau_score)
-            f.close()    
-    
+            f.close()
+
     def check_if_high_score(self):
         # lit le fichier high score
         fichier = open("score/HIGH_SCORE.txt", "r")
         contenu_high = fichier.read()
         fichier.close()
-        
+
         # lit le fichier current score
         fichier = open("score/current_score.txt", "r")
         contenu_current = fichier.read()
         fichier.close()
-        
+
         contenu_current = int(contenu_current)
         contenu_high = int(contenu_high)
-        
+
         # si on depasse le high score on le note dans le fichier
-        if contenu_current >= contenu_high: 
+        if contenu_current >= contenu_high:
             with open("score/high_score.txt", 'w') as f:
                 # Écriture le high score dans le fichier
                 f.write(str(contenu_current))
                 f.close()
-            print("high score battu: "+ str(contenu_current))
-
-
-    
+            print("high score battu: " + str(contenu_current))
 
 
 class OBSTACLE:
@@ -258,26 +273,13 @@ class OBSTACLE:
 
     def draw_obstacle(self):
         self.update_diff_from_file()
-        
 
-        
-        nb_obstacles = len(self.obstacles)
+        map_used = main_game.map
 
-        # for index in range(nb_obstacles):
-        #     # if index==1 or index==3 or index==5:
-        #     #     break
-        #     # else:
-        #     #     number_obstacle = index+1
-        #     # print(index, "x: "+str(self.obstacles[index].x),"y: "+str(self.obstacles[index].y))
-        #     #obstacle_rect = pygame.Rect(int(self.obstacles[index].x*cell_size), int(self.obstacles[index].y*cell_size), cell_size, cell_size)
-        #     #image obstacle en fonction du 'obstacle number' (situé dans l'index suivant celui de la position de l'obstacle)
-        #     obstacle = pygame.image.load('Graphics/map/obstacles/'+str(main_game.map)+'/obstacle-'+str(1)+'.png').convert_alpha() 
-        #     obstacle_rect = pygame.Rect(int(self.obstacles[index].x*cell_size), int(self.obstacles[index].y*cell_size), cell_size, cell_size)
-        
-        # 
         with open('obstacles.txt', 'r') as f:
             lines = f.readlines()
-            clean_lines = [line.strip() for line in lines if re.search(r'\d', line)]
+            clean_lines = [line.strip()
+                           for line in lines if re.search(r'\d', line)]
             for line in clean_lines:
                 numbers = re.findall(r'\d+', line)
 
@@ -285,41 +287,41 @@ class OBSTACLE:
                 pos_x = numbers[0]
                 pos_y = numbers[1]
                 numero_obstacle = numbers[2]
-                
-                
-                obstacle = pygame.image.load('Graphics/map/obstacles/'+str(main_game.map)+'/obstacle-'+str(numero_obstacle)+'.png').convert_alpha() 
+
+                #si la map n'est pas une map couleurs 
+                if map_used == 'classic' or map_used=='lune' or map_used=='desert':
+                    obstacle = pygame.image.load('Graphics/map/obstacles/'+str(main_game.map)+'/obstacle-'+str(numero_obstacle)+'.png').convert_alpha()
+                else:
+                    obstacle = pygame.image.load('Graphics/map/obstacles/couleur/obstacle-bombe.png').convert_alpha()
                 obstacle_rect = pygame.Rect(int(int(pos_x)*cell_size), int(int(pos_y)*cell_size), cell_size, cell_size)
-                
-                #RENDER
+
+                # RENDER
                 screen.blit(obstacle, obstacle_rect)
-        
+
     def randomize(self, dif):  # creer un element a une position random
         self.update_diff_from_file()
-        
-        #compte le nombre de fichier obstacle pour la map
-        #nb_file_obstacles = self.count_files_in_directory('Graphics/map/obstacles/'+str(main_game.map))
-        
+
+        # compte le nombre de fichier obstacle pour la map
+        # nb_file_obstacles = self.count_files_in_directory('Graphics/map/obstacles/'+str(main_game.map))
+
         # nombre d'obstacles en fonction de la difficulté
         nb_obstacles = self.get_nb_obstacles_from_difficulty()
-        
+
         # SI ON EST PAS EN MODE AUCUN OBSTACLE
         if (self.difficulty != 'aucun'):
             for i in range(0, nb_obstacles):
 
-                
                 self.x = random.randint(1, cell_number-1)  # random x
                 self.y = random.randint(1, cell_number-1)  # random y
-               
-                #choisi un des fichiers au hasard 
-                self.obstacle_number = random.randint(1,4)
 
-                
+                # choisi un des fichiers au hasard
+                self.obstacle_number = random.randint(1, 5)
+
                 # pas en bas droite
                 if (Vector2(self.x, self.y) != Vector2(19, 19) and Vector2(self.x, self.y) != Vector2(19, 18) and Vector2(self.x, self.y) != Vector2(19, 17) and Vector2(self.x, self.y) != Vector2(18, 19) and Vector2(self.x, self.y) != Vector2(18, 17) and Vector2(self.x, self.y) != Vector2(17, 17)):
                     self.pos = Vector2(self.x, self.y)
                     self.obstacles.append(self.pos)
-                    write_objects_in_file(self.x,self.y,self.obstacle_number)
-
+                    write_objects_in_file(self.x, self.y, self.obstacle_number)
 
     def get_nb_obstacles_from_difficulty(self):
         fichier = open("current_diff.txt", "r")
@@ -338,12 +340,12 @@ class OBSTACLE:
     def update_diff_from_file(self):
         fichier = open("current_diff.txt", "r")
         contenu = fichier.read()
-        print(contenu)
+        # print(contenu)
 
         diff = contenu
         self.difficulty = str(diff)
         return str(diff)
-    
+
     def count_files_in_directory(self, directory_path):
         count = 0
         for file_name in os.listdir(directory_path):
@@ -354,7 +356,8 @@ class OBSTACLE:
     def get_pos_and_number_obstacle_from_file(self):
         with open('obstacles.txt', 'r') as f:
             lines = f.readlines()
-            clean_lines = [line.strip() for line in lines if re.search(r'\d', line)]
+            clean_lines = [line.strip()
+                           for line in lines if re.search(r'\d', line)]
             for line in clean_lines:
                 numbers = re.findall(r'\d+', line)
 
@@ -362,21 +365,17 @@ class OBSTACLE:
                 pos_x = numbers[0]
                 pos_y = numbers[1]
                 numero_obstacle = numbers[2]
-                
-    
-
-    
 
 
-
-# ecrire les objets et leur numero de fichier dans un fichier texte à part  
-def write_objects_in_file(positionx, positiony, numero_obstacle):  
+# ecrire les objets et leur numero de fichier dans un fichier texte à part
+def write_objects_in_file(positionx, positiony, numero_obstacle):
     position = str('['+str(positionx)+str(',')+str(positiony)+str(']'))
     with open("obstacles.txt", 'a') as f:
-        f.write(str('\n')+ str('- '*40)+ str('\n')+ str(position)+str(' , ')+str(numero_obstacle))
+        f.write(str('\n') + str('- '*40) + str('\n') +
+                str(position)+str(' , ')+str(numero_obstacle))
         f.close()
-    
-    
+
+
 class MENU:
     def __init__(self):
         self.volume = 0.5
@@ -436,7 +435,8 @@ class MENU:
     # -------------------------------------------- SNAKE --------------------------------------------
 
     def draw_snake_preview(self):
-        localisation_skin = 'Graphics/skin/' + str(self.skin)+'/preview/'+str(self.skin)+'.png'
+        localisation_skin = 'Graphics/skin/' + \
+            str(self.skin)+'/preview/'+str(self.skin)+'.png'
         skin_actuel = pygame.image.load(
             localisation_skin).convert_alpha()  # image skin à utiliser
         # SKIN
@@ -724,7 +724,7 @@ class MENU:
         screen.blit(map_surface, map_rect)
 
     def change_map_plus(self):
-        maps = ['classic', 'desert','lune']
+        maps = ['classic', 'desert', 'lune' , 'bleu', 'vert', 'orange', 'rouge', 'rose', 'violet']
         # combien y a t'il de map
         nb_map_max = len(maps)
 
@@ -753,7 +753,7 @@ class MENU:
             main_game.update_map_from_file()
 
     def change_map_moins(self):
-        maps = ['classic', 'desert','lune']
+        maps = ['classic', 'desert', 'lune' , 'bleu', 'vert', 'orange', 'rouge', 'rose', 'violet']
         # combien y a t'il de map
         nb_map_max = len(maps)
 
@@ -816,9 +816,10 @@ class MENU:
         diff_text = str(self.difficulty)  # diff
 
         # titre skin
-        diff_titre_text = str('difficlute')
+        diff_titre_text = str('difficulte')
 
-        diff_surface = game_font_very_very_small.render(diff_text, True, couleur_texte)
+        diff_surface = game_font_very_very_small.render(
+            diff_text, True, couleur_texte)
         diff_rect = diff_surface.get_rect(center=(165, 353))
         # ------------------------------------------#
         diff_titre_surface = game_font_small.render(
@@ -830,9 +831,9 @@ class MENU:
         screen.blit(diff_surface, diff_rect)
 
     def change_diff_plus(self):
-        #reset le fichier des obstacles
+        # reset le fichier des obstacles
         self.reset_obstacles_files()
-        
+
         diffs = ['aucun', 'vitesse +', 'obstacle-1', 'obstacle-2', 'extreme']
         # combien y a t'il de diff
         nb_diff_max = len(diffs)
@@ -864,9 +865,9 @@ class MENU:
             main_game.update_diff_from_file()
 
     def change_diff_moins(self):
-        #reset le fichier des obstacles
+        # reset le fichier des obstacles
         self.reset_obstacles_files()
-        
+
         diffs = ['aucun', 'vitesse +', 'obstacle-1', 'obstacle-2', 'extreme']
         # combien y a t'il de diff
         nb_diff_max = len(diffs)
@@ -966,7 +967,7 @@ class MENU:
         reset_chaine = str('aucun')
         with open(nom_fichier, 'w') as f:
             f.write(reset_chaine)
-        
+
         # 5 - obstacles
         nom_fichier = "obstacles.txt"
         reset_chaine = str('')
@@ -979,6 +980,7 @@ class MENU:
         reset_chaine = str('')
         with open(nom_fichier, 'w') as f:
             f.write(reset_chaine)
+
 
 class GAMEOVER:
     def __init__(self):
@@ -1034,9 +1036,8 @@ class GAMEOVER:
         fichier = open("score/current_score.txt", "r")
         contenu_current = fichier.read()
         fichier.close()
-        
 
-        # score atteint durant la partie 
+        # score atteint durant la partie
         dead_text = str('Votre score : ' + str(contenu_current))
         dead_surface = game_font_small.render(dead_text, True, (255, 255, 255))
         # position x du current score
@@ -1120,7 +1121,6 @@ class GAMEOVER:
         screen.blit(menu_surface, menu_rect)
 
 
-
 class MAIN:
     # creation du fruit et du serpent
     def __init__(self):
@@ -1129,13 +1129,11 @@ class MAIN:
         self.difficulty = self.update_diff_from_file()
         # ON DEFINIT QUELLE DIFFiCULTE ON UTILISE
         self.obstacles = OBSTACLE(self.difficulty)
-        
+
         self.fruit = FRUIT(self.update_fruit_from_file())
-        
-        
+
         self.timer = TIMER()
         self.map = self.update_map_from_file()
-        
 
     def update(self):
         self.snake.move_snake()
@@ -1151,8 +1149,8 @@ class MAIN:
         # SI DIFFICULTE OBSTACLES
         if self.difficulty == 'obstacle-1' or self.difficulty == 'obstacle-2' or self.difficulty == 'extreme':
             self.obstacles.draw_obstacle()  # dessine les obstacles obstacles
-        
-        #print(main_game.obstacles.obstacles)
+
+        # print(main_game.obstacles.obstacles)
 
     def check_collision(self):
         # check si la tete touche le fruit
@@ -1168,8 +1166,8 @@ class MAIN:
         for block in self.snake.body[1:]:
             if block == self.fruit.pos:
                 self.fruit.randomize()
-        
-        # si le fruit apparait sur un obstacle 
+
+        # si le fruit apparait sur un obstacle
         for block in self.obstacles.obstacles:
             if block == self.fruit.pos:
                 self.fruit.randomize()
@@ -1196,7 +1194,6 @@ class MAIN:
                 print(game_over.facondemourir)
                 self.game_over()
 
-
         # si le serpent touche une case obstacle
         # UNIQUEMENT SI DIFFICULTE OBSTACLES
         if self.difficulty == 'obstacle-1' or self.difficulty == 'obstacle-2' or self.difficulty == 'extreme':
@@ -1207,7 +1204,6 @@ class MAIN:
                     game_over.facondemourir = str('Pardi ! Un obstacle...')
                     print(game_over.facondemourir)
                     self.game_over()
-
 
     def game_over(self):
         self.snake = SNAKE(self.update_skin_from_file())
@@ -1260,7 +1256,8 @@ class MAIN:
         screen.blit(titre_surface, titre_rect)
 
     def draw_score(self):
-        fruit = pygame.image.load('Graphics/fruit/'+str(self.fruit.fruit)+'.png').convert_alpha()  # image de fruit
+        fruit = pygame.image.load(
+            'Graphics/fruit/'+str(self.fruit.fruit)+'.png').convert_alpha()  # image de fruit
         # score
         # score en fonction de la taille du serpent (-3 du corps du début)
         score_text = str(len(self.snake.body)-3)
@@ -1270,8 +1267,8 @@ class MAIN:
         score_rect = score_surface.get_rect(center=(score_x, score_y))
         screen.blit(score_surface, score_rect)
         # fuit a coté
-        fruit_rect = fruit.get_rect(midright=(score_rect.left, score_rect.centery))
-
+        fruit_rect = fruit.get_rect(
+            midright=(score_rect.left, score_rect.centery))
 
         # RENDER
         screen.blit(fruit, fruit_rect)
@@ -1299,7 +1296,7 @@ class MAIN:
         print(contenu)
 
         map_world = contenu
-        self.map= str(map_world)
+        self.map = str(map_world)
         return map_world
 
     def update_diff_from_file(self):
@@ -1324,13 +1321,14 @@ screen = pygame.display.set_mode(
     (cell_number*cell_size, cell_number*cell_size))  # TAILLE DE LA FENETRE
 clock = pygame.time.Clock()  # objet clock
 
-# FONT 
+# FONT
 game_font = pygame.font.Font('Font/SuperMario256.ttf', 50)
 game_font_small = pygame.font.Font('Font/SuperMario256.ttf', 30)
 game_font_very_small = pygame.font.Font('Font/SuperMario256.ttf', 25)
 game_font_very_very_small = pygame.font.Font('Font/SuperMario256.ttf', 18)
 
-tete_de_mort = pygame.image.load('Graphics/death-skull.png').convert_alpha()  # image tete de mort
+tete_de_mort = pygame.image.load(
+    'Graphics/death-skull.png').convert_alpha()  # image tete de mort
 
 SCREEN_UPDATE = pygame.USEREVENT
 # TIMER qui fait le screen update toutes les 150 ms
@@ -1338,40 +1336,45 @@ SCREEN_UPDATE = pygame.USEREVENT
 # pygame.time.set_timer(SCREEN_UPDATE, fps_game)
 
 # FONCTION QUI CHOISIT LE TAUX DE RAFRAICHISSEMENT ( DONC LA VITESSE) du jeu
+
+
 def change_fps():
     global fps_game
-    
+
     # on va chercher la difficulté dans le fichier:
     fichier = open("current_diff.txt", "r")
     contenu = fichier.read()
     diff = str(contenu)
-    
-    #en fonction de la difficulté on update la vitesse entre 120 et 150 ms
-    if diff=='aucun' or diff=='obstacle-1' or diff=='obstacle-2':
+
+    # en fonction de la difficulté on update la vitesse entre 120 et 150 ms
+    if diff == 'aucun' or diff == 'obstacle-1' or diff == 'obstacle-2':
         fps_game = 150
-    elif diff=='vitesse +' or diff=='extreme':
+    elif diff == 'vitesse +' or diff == 'extreme':
         fps_game = 120
-    
+
     # On initiatlise le timer en fonction
     pygame.time.set_timer(SCREEN_UPDATE, fps_game)
     print(fps_game)
 
+
 def reset_current_score():
     with open("score/current_score.txt", 'w') as f:
-            # REmet a 0 le score dans le fichier
-            f.write(str('0'))
-            f.close()
+        # REmet a 0 le score dans le fichier
+        f.write(str('0'))
+        f.close()
+
 
 def write_stats_in_file():
     # lit le fichier current score
-        fichier = open("score/current_score.txt", "r")
-        contenu_current = fichier.read()
-        fichier.close()
-        
-        with open("score/stats.txt", 'a') as f:
-            # Remet à 0 le score dans le fichier
-            f.write(str('\n')+ str('- '*40)+ str('\n')+ str('Score : ')+str(contenu_current))
-            f.close()
+    fichier = open("score/current_score.txt", "r")
+    contenu_current = fichier.read()
+    fichier.close()
+
+    with open("score/stats.txt", 'a') as f:
+        # Remet à 0 le score dans le fichier
+        f.write(str('\n') + str('- '*40) + str('\n') +
+                str('Score : ')+str(contenu_current))
+        f.close()
 
 
 menu_game = MENU()
@@ -1386,7 +1389,7 @@ def play_game():
     main_game.snake.chose_sound_from_fruit()  # CHANGE LE SONS
     main_game.update_map_from_file()  # change la map
     main_game.update_diff_from_file()  # change la difficulté
-    change_fps() # en fonction de la difficulté on regle la vitesse du jeu
+    change_fps()  # en fonction de la difficulté on regle la vitesse du jeu
     while True:
 
         for event in pygame.event.get():
@@ -1411,7 +1414,7 @@ def play_game():
                 if event.key == pygame.K_LEFT:  # fleche de gauche
                     if main_game.snake.direction.x != 1:
                         main_game.snake.direction = Vector2(-1, 0)
-                        
+
         screen.fill((169, 190, 129))  # couleur du background
         main_game.draw_elements()
         pygame.display.update()
@@ -1455,8 +1458,8 @@ def menu_du_jeu():
         zone_skin_moins = pygame.rect.Rect(55, 565, 50, 50)
         zone_fruit_plus = pygame.rect.Rect(555, 565, 50, 50)
         zone_fruit_moins = pygame.rect.Rect(335, 565, 50, 50)
-        zone_map_plus = pygame.rect.Rect(55, 445, 50, 50)
-        zone_map_moins = pygame.rect.Rect(225, 445, 50, 50)
+        zone_map_moins = pygame.rect.Rect(55, 445, 50, 50)
+        zone_map_plus = pygame.rect.Rect(225, 445, 50, 50)
         zone_diff_moins = pygame.rect.Rect(55, 325, 50, 50)
         zone_diff_plus = pygame.rect.Rect(225, 325, 50, 50)
 
