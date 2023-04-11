@@ -4,6 +4,8 @@ import random
 from pygame.math import Vector2
 import re
 import os
+import datetime
+import locale
 
 
 """ ---------------------------------------------------------- """
@@ -34,15 +36,24 @@ class TIMER:
         screen.blit(pancarte, pancarte_rect)
 
         # Formatte le temps en une chaîne de caractères au format "mm:ss"
-        time_text = self.font.render("{:02d}:{:02d}".format(
-            elapsed_minutes, elapsed_seconds), True, (255, 255, 255))
+        time_text = self.font.render("{:02d}:{:02d}".format(elapsed_minutes, elapsed_seconds), True, (255, 255, 255))
         screen.blit(time_text, (700, 700))
+        
+        #ecrit dans le fichier time
+        with open("current_time.txt", 'w') as f:
+            f.write("{:02d}:{:02d}".format(elapsed_minutes, elapsed_seconds))
+            f.close()
+            
+        
 
         def reset_timer(self):
             self.clock = pygame.time.Clock()
 
         def get_start_time(self):
             return self.start_time
+        
+
+
 
 
 class FRUIT:
@@ -308,7 +319,7 @@ class OBSTACLE:
         nb_obstacles = self.get_nb_obstacles_from_difficulty()
 
         # SI ON EST PAS EN MODE AUCUN OBSTACLE
-        if (self.difficulty != 'aucun'):
+        if (self.difficulty != 'noob'):
             for i in range(0, nb_obstacles):
 
                 self.x = random.randint(1, cell_number-1)  # random x
@@ -322,14 +333,19 @@ class OBSTACLE:
                     self.pos = Vector2(self.x, self.y)
                     self.obstacles.append(self.pos)
                     write_objects_in_file(self.x, self.y, self.obstacle_number)
+                else:
+                    #print("---------obstacle pas au bon endroit")
+                    # repositionne si en bas a droite
+                    self.randomize(self.difficulty)
+                
 
     def get_nb_obstacles_from_difficulty(self):
         fichier = open("current_diff.txt", "r")
         dif = fichier.read()
 
-        if (dif == 'obstacle-1'):
+        if (dif == 'pieges'):
             nb_obstacles = 3
-        elif (dif == 'obstacle-2'):
+        elif (dif == 'pieges +'):
             nb_obstacles = 6
         elif (dif == 'extreme'):
             nb_obstacles = 6
@@ -382,7 +398,7 @@ class MENU:
         self.map = 'classic'
         self.skin = 'bleu'
         self.fruit = 'pomme'
-        self.difficulty = 'aucun'
+        self.difficulty = 'noob'
 
     def update(self):
         self.draw_elements_menu()
@@ -399,14 +415,21 @@ class MENU:
         self.draw_fruit_selector()
         self.draw_fruit_preview()
         self.draw_play_button()
+        self.draw_front_menu()
 
     def draw_background_menu(self):
-        background_menu_color = (153, 198, 98)
-        bg_menu_rect = pygame.Rect(
-            0, 0, cell_size*cell_number, cell_number*cell_size)
+        bg_image = pygame.image.load('Graphics/menu/background.png').convert_alpha()
+        bg_rect = bg_image.get_rect(center=(cell_size*cell_number/2, cell_size*cell_number/2))
 
         # RENDER
-        pygame.draw.rect(screen, background_menu_color, bg_menu_rect)
+        screen.blit(bg_image, bg_rect)
+        
+    def draw_front_menu(self):
+        front_image = pygame.image.load('Graphics/menu/front.png').convert_alpha()
+        front_rect = front_image.get_rect(center=(cell_size*cell_number/2, cell_size*cell_number/2))
+
+        # RENDER
+        screen.blit(front_image, front_rect)
 
     def draw_titre_menu(self):
         # texte
@@ -420,9 +443,13 @@ class MENU:
         screen.blit(titre_surface, titre_rect)
 
     def draw_high_score(self):
-        # texte
-        # score atteint durant la partie ----------------------------------------- METTRE LE SCORE APRES ---------
-        high_text = str('Record actuel : ' + str('56'))
+        # score
+        fichier = open("score/HIGH_SCORE.txt", "r")
+        contenu_high = fichier.read()
+        fichier.close()
+        
+        # score atteint durant la partie 
+        high_text = str('Record actuel : ' + str(contenu_high))
         high_surface = game_font_small.render(high_text, True, (0, 0, 0))
         # position x du high score
         high_x = int((4*cell_size*cell_number/5)-30)
@@ -435,13 +462,10 @@ class MENU:
     # -------------------------------------------- SNAKE --------------------------------------------
 
     def draw_snake_preview(self):
-        localisation_skin = 'Graphics/skin/' + \
-            str(self.skin)+'/preview/'+str(self.skin)+'.png'
-        skin_actuel = pygame.image.load(
-            localisation_skin).convert_alpha()  # image skin à utiliser
+        localisation_skin = 'Graphics/skin/' + str(self.skin)+'/preview/'+str(self.skin)+'.png'
+        skin_actuel = pygame.image.load(localisation_skin).convert_alpha()  # image skin à utiliser
         # SKIN
-        skin_actuel_rect = skin_actuel.get_rect(
-            center=((cell_size*cell_number/2)+40, cell_size*cell_number/2))
+        skin_actuel_rect = skin_actuel.get_rect(center=((cell_size*cell_number/2)+90, (cell_size*cell_number/2)-10))
 
         # RENDER
         screen.blit(skin_actuel, skin_actuel_rect)
@@ -449,16 +473,16 @@ class MENU:
     def draw_skin_selector(self):
         # couleur texte
         couleur_bg = (255, 255, 255)
-        couleur_texte = (0, 0, 0)
+        couleur_texte = (220, 220, 220) #---------------------------------------------------------------------------------COULEUR
         couleur_titre_skin = (255, 255, 255)
         # elements
-        zone_cliquable_droite = pygame.rect.Rect(235, 565, 50, 50)
-        pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
-        zone_cliquable_gauche = pygame.rect.Rect(55, 565, 50, 50)
-        pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
+        zone_cliquable_droite = pygame.rect.Rect(240, 555, 50, 50)
+        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
+        zone_cliquable_gauche = pygame.rect.Rect(55, 555, 50, 50)
+        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
 
-        bg_skin_selector = pygame.rect.Rect(105, 565, 130, 50)
-        pygame.draw.rect(screen, couleur_bg, bg_skin_selector)
+        # bg_skin_selector = pygame.rect.Rect(105, 565, 130, 50)
+        # pygame.draw.rect(screen, couleur_bg, bg_skin_selector)
 
         # texte skin ("nom du skin")
         skin_text = str(self.skin)  # skin
@@ -467,14 +491,14 @@ class MENU:
         skin_titre_text = str('skin')
 
         skin_surface = game_font_small.render(skin_text, True, couleur_texte)
-        skin_rect = skin_surface.get_rect(center=(170, 593))
+        skin_rect = skin_surface.get_rect(center=(170, 586))
         # ------------------------------------------#
-        skin_titre_surface = game_font_small.render(
-            skin_titre_text, True, couleur_titre_skin)
-        skin_titre_rect = skin_titre_surface.get_rect(center=(170, 540))
+        # skin_titre_surface = game_font_small.render(
+        #     skin_titre_text, True, couleur_titre_skin)
+        # skin_titre_rect = skin_titre_surface.get_rect(center=(170, 540))
 
         # RENDER
-        screen.blit(skin_titre_surface, skin_titre_rect)
+        # screen.blit(skin_titre_surface, skin_titre_rect)
         screen.blit(skin_surface, skin_rect)
 
     def change_skin_plus(self):
@@ -555,13 +579,10 @@ class MENU:
     # -------------------------------------------- FRUIT --------------------------------------------
 
     def draw_fruit_preview(self):
-        localisation_fruit = 'Graphics/fruit/' + \
-            str(self.fruit)+'.png'
-        fruit_actuel = pygame.image.load(
-            localisation_fruit).convert_alpha()  # image fruit à utiliser
+        localisation_fruit = 'Graphics/fruit/' + str(self.fruit)+'.png'
+        fruit_actuel = pygame.image.load(localisation_fruit).convert_alpha()  # image fruit à utiliser
         # Fruit
-        fruit_actuel_rect = fruit_actuel.get_rect(
-            center=((cell_size*cell_number/2)+130, cell_size*cell_number/2))
+        fruit_actuel_rect = fruit_actuel.get_rect(center=((cell_size*cell_number/2)+180, (cell_size*cell_number/2)-10))
 
         # RENDER
         screen.blit(fruit_actuel, fruit_actuel_rect)
@@ -569,16 +590,16 @@ class MENU:
     def draw_fruit_selector(self):
         # couleur texte
         couleur_bg = (255, 255, 255)
-        couleur_texte = (0, 0, 0)
+        couleur_texte = (220, 220, 220)
         couleur_titre_fruit = (255, 255, 255)
         # elements
-        zone_cliquable_droite = pygame.rect.Rect(555, 565, 50, 50)
-        pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
-        zone_cliquable_gauche = pygame.rect.Rect(335, 565, 50, 50)
-        pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
+        zone_cliquable_droite = pygame.rect.Rect(595, 555, 50, 50)
+        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
+        zone_cliquable_gauche = pygame.rect.Rect(380, 555, 50, 50)
+        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
 
-        bg_fruit_selector = pygame.rect.Rect(385, 565, 170, 50)
-        pygame.draw.rect(screen, couleur_bg, bg_fruit_selector)
+        # bg_fruit_selector = pygame.rect.Rect(385, 565, 170, 50)
+        # pygame.draw.rect(screen, couleur_bg, bg_fruit_selector)
 
         # texte fruit ("nom du fruit")
         fruit_text = str(self.fruit)  # fruit
@@ -587,14 +608,14 @@ class MENU:
         fruit_titre_text = str('fruit')
 
         fruit_surface = game_font_small.render(fruit_text, True, couleur_texte)
-        fruit_rect = fruit_surface.get_rect(center=(470, 593))
+        fruit_rect = fruit_surface.get_rect(center=(508, 586))
         # ------------------------------------------#
-        fruit_titre_surface = game_font_small.render(
-            fruit_titre_text, True, couleur_titre_fruit)
-        fruit_titre_rect = fruit_titre_surface.get_rect(center=(470, 540))
+        # fruit_titre_surface = game_font_small.render(
+        #     fruit_titre_text, True, couleur_titre_fruit)
+        # fruit_titre_rect = fruit_titre_surface.get_rect(center=(470, 540))
 
         # RENDER
-        screen.blit(fruit_titre_surface, fruit_titre_rect)
+        # screen.blit(fruit_titre_surface, fruit_titre_rect)
         screen.blit(fruit_surface, fruit_rect)
 
     def change_fruit_plus(self):
@@ -682,11 +703,9 @@ class MENU:
 
     def draw_map_preview(self):
         localisation_map = 'Graphics/map/'+str(self.map)+'-preview.png'
-        map_actuel = pygame.image.load(
-            localisation_map).convert_alpha()  # image map à utiliser
+        map_actuel = pygame.image.load(localisation_map).convert_alpha()  # image map à utiliser
         # map
-        map_actuel_rect = map_actuel.get_rect(
-            center=((cell_size*cell_number/2)+70, cell_size*cell_number/2))
+        map_actuel_rect = map_actuel.get_rect(center=((cell_size*cell_number/2)+110, (cell_size*cell_number/2)-10))
 
         # RENDER
         screen.blit(map_actuel, map_actuel_rect)
@@ -694,16 +713,16 @@ class MENU:
     def draw_map_selector(self):
         # couleur texte
         couleur_bg = (255, 255, 255)
-        couleur_texte = (0, 0, 0)
+        couleur_texte = (188, 53, 28)
         couleur_titre_map = (255, 255, 255)
         # elements
         zone_cliquable_droite = pygame.rect.Rect(55, 445, 50, 50)
-        pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
+        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
         zone_cliquable_gauche = pygame.rect.Rect(225, 445, 50, 50)
-        pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
+        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
 
-        bg_map_selector = pygame.rect.Rect(105, 445, 120, 50)
-        pygame.draw.rect(screen, couleur_bg, bg_map_selector)
+        # bg_map_selector = pygame.rect.Rect(105, 445, 120, 50)
+        # pygame.draw.rect(screen, couleur_bg, bg_map_selector)
 
         # texte map ("nom du map")
         map_text = str(self.map)  # map
@@ -715,12 +734,12 @@ class MENU:
             map_text, True, couleur_texte)
         map_rect = map_surface.get_rect(center=(165, 473))
         # ------------------------------------------#
-        map_titre_surface = game_font_small.render(
-            map_titre_text, True, couleur_titre_map)
-        map_titre_rect = map_titre_surface.get_rect(center=(170, 420))
+        # map_titre_surface = game_font_small.render(
+        #     map_titre_text, True, couleur_titre_map)
+        # map_titre_rect = map_titre_surface.get_rect(center=(170, 420))
 
         # RENDER
-        screen.blit(map_titre_surface, map_titre_rect)
+        # screen.blit(map_titre_surface, map_titre_rect)
         screen.blit(map_surface, map_rect)
 
     def change_map_plus(self):
@@ -804,13 +823,13 @@ class MENU:
         couleur_texte = (0, 0, 0)
         couleur_titre_diff = (255, 255, 255)
         # elements
-        zone_cliquable_droite = pygame.rect.Rect(55, 325, 50, 50)
-        pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
-        zone_cliquable_gauche = pygame.rect.Rect(225, 325, 50, 50)
-        pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
+        zone_cliquable_droite = pygame.rect.Rect(110, 316, 50, 50)
+        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
+        zone_cliquable_gauche = pygame.rect.Rect(290, 316, 50, 50)
+        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
 
-        bg_diff_selector = pygame.rect.Rect(105, 325, 120, 50)
-        pygame.draw.rect(screen, couleur_bg, bg_diff_selector)
+        # bg_diff_selector = pygame.rect.Rect(105, 325, 120, 50)
+        # pygame.draw.rect(screen, couleur_bg, bg_diff_selector)
 
         # texte diff ("nom du diff")
         diff_text = str(self.difficulty)  # diff
@@ -818,23 +837,22 @@ class MENU:
         # titre skin
         diff_titre_text = str('difficulte')
 
-        diff_surface = game_font_very_very_small.render(
-            diff_text, True, couleur_texte)
-        diff_rect = diff_surface.get_rect(center=(165, 353))
+        diff_surface = game_font_very_very_small.render(diff_text, True, couleur_texte)
+        diff_rect = diff_surface.get_rect(center=(220, 345))
         # ------------------------------------------#
-        diff_titre_surface = game_font_small.render(
-            diff_titre_text, True, couleur_titre_diff)
-        diff_titre_rect = diff_titre_surface.get_rect(center=(170, 300))
+        # diff_titre_surface = game_font_small.render(
+        #     diff_titre_text, True, couleur_titre_diff)
+        # diff_titre_rect = diff_titre_surface.get_rect(center=(170, 300))
 
         # RENDER
-        screen.blit(diff_titre_surface, diff_titre_rect)
+        # screen.blit(diff_titre_surface, diff_titre_rect)
         screen.blit(diff_surface, diff_rect)
 
     def change_diff_plus(self):
         # reset le fichier des obstacles
         self.reset_obstacles_files()
 
-        diffs = ['aucun', 'vitesse +', 'obstacle-1', 'obstacle-2', 'extreme']
+        diffs = ['noob', 'vitesse +', 'pieges', 'pieges +', 'extreme']
         # combien y a t'il de diff
         nb_diff_max = len(diffs)
 
@@ -868,7 +886,7 @@ class MENU:
         # reset le fichier des obstacles
         self.reset_obstacles_files()
 
-        diffs = ['aucun', 'vitesse +', 'obstacle-1', 'obstacle-2', 'extreme']
+        diffs = ['noob', 'vitesse +', 'pieges', 'pieges +', 'extreme']
         # combien y a t'il de diff
         nb_diff_max = len(diffs)
 
@@ -915,8 +933,10 @@ class MENU:
 
     def draw_play_button(self):
         # Couleur texte
-        couleur_texte_menu = (240, 0, 0)
-        couleur_texte_menu_hover = (255, 255, 255)
+        # couleur_texte_menu = (240, 0, 0)
+        # couleur_texte_menu_hover = (255, 255, 255)
+        couleur_texte_menu = (255, 255, 255)
+        couleur_texte_menu_hover = (240, 20, 20)
 
         # zone cliquable
         zone_cliquable = pygame.rect.Rect(325, 665, 150, 60)
@@ -964,7 +984,7 @@ class MENU:
 
          # 4 - diff
         nom_fichier = "current_diff.txt"
-        reset_chaine = str('aucun')
+        reset_chaine = str('noob')
         with open(nom_fichier, 'w') as f:
             f.write(reset_chaine)
 
@@ -985,7 +1005,7 @@ class MENU:
 class GAMEOVER:
     def __init__(self):
         self.volume = .5
-        self.difficulty = 'aucun'
+        self.difficulty = 'noob'
         self.facondemourir = 'mur'
 
     def update(self):
@@ -993,6 +1013,7 @@ class GAMEOVER:
 
     def draw_elements_game_over(self):
         self.draw_background_menu()
+        self.draw_time()
         self.draw_tete_de_mort_menu()
         self.draw_dead_menu()
         self.draw_current_score_menu()
@@ -1026,6 +1047,21 @@ class GAMEOVER:
         dead_surface = game_font.render(dead_text, True, (255, 255, 255))
         dead_x = int(cell_size*cell_number/2)  # position x du titre
         dead_y = int(cell_size*cell_number/3)  # position y du titre
+        dead_rect = dead_surface.get_rect(center=(dead_x, dead_y))
+
+        # RENDER
+        screen.blit(dead_surface, dead_rect)
+    
+    def draw_time(self):
+        # texte
+        # lit le fichier time 
+        fichier = open("current_time.txt", "r")
+        contenu_current_time = fichier.read()
+        fichier.close()
+        dead_text = 'TEMPS '+str(contenu_current_time)  # vous etes mort
+        dead_surface = game_font_big.render(dead_text, True, (255, 255, 255))
+        dead_x = int(cell_size*cell_number/2)  # position x du titre
+        dead_y = int(cell_size*cell_number/3-150)  # position y du titre
         dead_rect = dead_surface.get_rect(center=(dead_x, dead_y))
 
         # RENDER
@@ -1147,7 +1183,7 @@ class MAIN:
         self.timer.draw_timer()  # dessine le timer
         self.draw_score()
         # SI DIFFICULTE OBSTACLES
-        if self.difficulty == 'obstacle-1' or self.difficulty == 'obstacle-2' or self.difficulty == 'extreme':
+        if self.difficulty == 'pieges' or self.difficulty == 'pieges +' or self.difficulty == 'extreme':
             self.obstacles.draw_obstacle()  # dessine les obstacles obstacles
 
         # print(main_game.obstacles.obstacles)
@@ -1196,7 +1232,7 @@ class MAIN:
 
         # si le serpent touche une case obstacle
         # UNIQUEMENT SI DIFFICULTE OBSTACLES
-        if self.difficulty == 'obstacle-1' or self.difficulty == 'obstacle-2' or self.difficulty == 'extreme':
+        if self.difficulty == 'pieges' or self.difficulty == 'pieges +' or self.difficulty == 'extreme':
             nb_obstacles = len(main_game.obstacles.obstacles)
             for index in range(int(nb_obstacles)):
                 if (self.snake.body[0].x == main_game.obstacles.obstacles[index].x and self.snake.body[0].y == main_game.obstacles.obstacles[index].y):
@@ -1256,13 +1292,12 @@ class MAIN:
         screen.blit(titre_surface, titre_rect)
 
     def draw_score(self):
-        fruit = pygame.image.load(
-            'Graphics/fruit/'+str(self.fruit.fruit)+'.png').convert_alpha()  # image de fruit
+        fruit = pygame.image.load('Graphics/fruit/'+str(self.fruit.fruit)+'.png').convert_alpha()  # image de fruit
         # score
         # score en fonction de la taille du serpent (-3 du corps du début)
         score_text = str(len(self.snake.body)-3)
-        score_surface = game_font.render(score_text, True, (255, 255, 255))
-        score_x = int(cell_size*cell_number - 50)  # position x du score
+        score_surface = game_font_medium.render(score_text, True, (255, 255, 255))
+        score_x = int(cell_size*cell_number - 40)  # position x du score
         score_y = int(cell_size*cell_number - 40)  # position y du score
         score_rect = score_surface.get_rect(center=(score_x, score_y))
         screen.blit(score_surface, score_rect)
@@ -1323,9 +1358,11 @@ clock = pygame.time.Clock()  # objet clock
 
 # FONT
 game_font = pygame.font.Font('Font/SuperMario256.ttf', 50)
+game_font_big = pygame.font.Font('Font/SuperMario256.ttf', 100)
+game_font_medium = pygame.font.Font('Font/SuperMario256.ttf', 45)
 game_font_small = pygame.font.Font('Font/SuperMario256.ttf', 30)
 game_font_very_small = pygame.font.Font('Font/SuperMario256.ttf', 25)
-game_font_very_very_small = pygame.font.Font('Font/SuperMario256.ttf', 18)
+game_font_very_very_small = pygame.font.Font('Font/SuperMario256.ttf', 21)
 
 tete_de_mort = pygame.image.load(
     'Graphics/death-skull.png').convert_alpha()  # image tete de mort
@@ -1347,7 +1384,7 @@ def change_fps():
     diff = str(contenu)
 
     # en fonction de la difficulté on update la vitesse entre 120 et 150 ms
-    if diff == 'aucun' or diff == 'obstacle-1' or diff == 'obstacle-2':
+    if diff == 'noob' or diff == 'pieges' or diff == 'pieges +':
         fps_game = 150
     elif diff == 'vitesse +' or diff == 'extreme':
         fps_game = 120
@@ -1367,13 +1404,46 @@ def reset_current_score():
 def write_stats_in_file():
     # lit le fichier current score
     fichier = open("score/current_score.txt", "r")
-    contenu_current = fichier.read()
+    contenu_current_score = fichier.read()
     fichier.close()
+    
+    # lit le fichier high score si jamais on l'a dépassé
+    fichier = open("score/high_score.txt", "r")
+    contenu_current_high_score = fichier.read()
+    fichier.close()
+    
+    medaille=''
+    nouveau_high_score='Score à battre: '+str(contenu_current_high_score)
+    if contenu_current_score==contenu_current_high_score:
+        medaille='🥇🥇🥇'
+        nouveau_high_score="Vous avez battu le HIGH SCORE, BRAVO !🥇"
+    
+    # lit le fichier map 
+    fichier = open("current_map.txt", "r")
+    contenu_current_map = fichier.read()
+    fichier.close()
+    
+    # lit le fichier difficulté 
+    fichier = open("current_diff.txt", "r")
+    contenu_current_diff = fichier.read()
+    fichier.close()
+    
+    # lit le fichier time 
+    fichier = open("current_time.txt", "r")
+    contenu_current_time = fichier.read()
+    fichier.close()
+    
+    #date actuelle
+    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
+    now = datetime.datetime.now()
+    contenu_current_heure = now.strftime('%d %B %y à %H:%M')
+    
 
     with open("score/stats.txt", 'a') as f:
         # Remet à 0 le score dans le fichier
-        f.write(str('\n') + str('- '*40) + str('\n') +
-                str('Score : ')+str(contenu_current))
+        f.write(str('\n') + str('- '*40)+ str('\n')+str('🕦 ')+str(contenu_current_heure) 
+                +str('\n')+str(medaille)+str('🐍 Score: ')+str(contenu_current_score)+str(' points sur la carte 🌍 ')+str(contenu_current_map)
+                +str(' en mode ')+str(contenu_current_diff)+str(' ! La partie a duré ⏳ ')+str(contenu_current_time)+str('\n')+str(nouveau_high_score))
         f.close()
 
 
@@ -1456,19 +1526,27 @@ def menu_du_jeu():
         zone_cliquable_play = pygame.rect.Rect(325, 665, 150, 60)
         zone_skin_plus = pygame.rect.Rect(235, 565, 50, 50)
         zone_skin_moins = pygame.rect.Rect(55, 565, 50, 50)
-        zone_fruit_plus = pygame.rect.Rect(555, 565, 50, 50)
-        zone_fruit_moins = pygame.rect.Rect(335, 565, 50, 50)
-        zone_map_moins = pygame.rect.Rect(55, 445, 50, 50)
+        zone_fruit_plus = pygame.rect.Rect(595, 555, 50, 50)
+        zone_fruit_moins = pygame.rect.Rect(380, 555, 50, 50)
         zone_map_plus = pygame.rect.Rect(225, 445, 50, 50)
-        zone_diff_moins = pygame.rect.Rect(55, 325, 50, 50)
-        zone_diff_plus = pygame.rect.Rect(225, 325, 50, 50)
+        zone_map_moins = pygame.rect.Rect(55, 445, 50, 50)
+        zone_diff_moins = pygame.rect.Rect(110, 316, 50, 50)
+        zone_diff_plus = pygame.rect.Rect(290, 316, 50, 50)
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:  # si on click sur la croix on quite le jeu
+            if event.type == pygame.QUIT : # si on click sur la croix on quite le jeu
                 pygame.quit()
                 sys.exit()  # quite tous les sytemes restants
             if event.type == SCREEN_UPDATE:
                 game_over.update()
+            
+
+            if event.type == pygame.KEYDOWN:  
+                if event.key == pygame.K_RETURN:  
+                     play_game()
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()  # quite tous les sytemes restants
 
             # Vérifier si l'utilisateur a cliqué sur le bouton play
             if event.type == pygame.MOUSEBUTTONUP and zone_cliquable_play.collidepoint(event.pos):
