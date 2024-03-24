@@ -7,8 +7,10 @@ import os
 import datetime
 import locale
 
+import asyncio
 
-""" --------------------------- TIMER------------------------------- """
+
+""" ---------------------------------------------------------- """
 
 
 class TIMER:
@@ -36,25 +38,20 @@ class TIMER:
         screen.blit(pancarte, pancarte_rect)
 
         # Formatte le temps en une chaîne de caractères au format "mm:ss"
-        time_text = self.font.render("{:02d}:{:02d}".format(elapsed_minutes, elapsed_seconds), True, (255, 255, 255))
+        time_text = self.font.render("{:02d}:{:02d}".format(
+            elapsed_minutes, elapsed_seconds), True, (255, 255, 255))
         screen.blit(time_text, (700, 700))
-        
-        #ecrit dans le fichier time
+
+        # ecrit dans le fichier time
         with open("current_time.txt", 'w') as f:
             f.write("{:02d}:{:02d}".format(elapsed_minutes, elapsed_seconds))
             f.close()
-            
-        
 
         def reset_timer(self):
             self.clock = pygame.time.Clock()
 
         def get_start_time(self):
             return self.start_time
-        
-
-
-""" --------------------------- FRUIT------------------------------- """
 
 
 class FRUIT:
@@ -99,7 +96,6 @@ class FRUIT:
                     print("fruit sur un obstacle --> randomize")
                     self.randomize()
 
-""" --------------------------- SNAKE------------------------------- """
 
 class SNAKE:
     def __init__(self, skin):
@@ -276,7 +272,6 @@ class SNAKE:
                 f.close()
             print("high score battu: " + str(contenu_current))
 
-""" --------------------------- OBSTACLE------------------------------- """
 
 class OBSTACLE:
     def __init__(self, difficulty):
@@ -302,12 +297,15 @@ class OBSTACLE:
                 pos_y = numbers[1]
                 numero_obstacle = numbers[2]
 
-                #si la map n'est pas une map couleurs 
-                if map_used == 'classic' or map_used=='lune' or map_used=='desert':
-                    obstacle = pygame.image.load('Graphics/map/obstacles/'+str(main_game.map)+'/obstacle-'+str(numero_obstacle)+'.png').convert_alpha()
+                # si la map n'est pas une map couleurs
+                if map_used == 'classic' or map_used == 'lune' or map_used == 'desert':
+                    obstacle = pygame.image.load('Graphics/map/obstacles/'+str(
+                        main_game.map)+'/obstacle-'+str(numero_obstacle)+'.png').convert_alpha()
                 else:
-                    obstacle = pygame.image.load('Graphics/map/obstacles/couleur/obstacle-bombe.png').convert_alpha()
-                obstacle_rect = pygame.Rect(int(int(pos_x)*cell_size), int(int(pos_y)*cell_size), cell_size, cell_size)
+                    obstacle = pygame.image.load(
+                        'Graphics/map/obstacles/couleur/obstacle-bombe.png').convert_alpha()
+                obstacle_rect = pygame.Rect(
+                    int(int(pos_x)*cell_size), int(int(pos_y)*cell_size), cell_size, cell_size)
 
                 # RENDER
                 screen.blit(obstacle, obstacle_rect)
@@ -337,10 +335,9 @@ class OBSTACLE:
                     self.obstacles.append(self.pos)
                     write_objects_in_file(self.x, self.y, self.obstacle_number)
                 else:
-                    #print("---------obstacle pas au bon endroit")
+                    # print("---------obstacle pas au bon endroit")
                     # repositionne si en bas a droite
                     self.randomize(self.difficulty)
-                
 
     def get_nb_obstacles_from_difficulty(self):
         fichier = open("current_diff.txt", "r")
@@ -394,7 +391,6 @@ def write_objects_in_file(positionx, positiony, numero_obstacle):
                 str(position)+str(' , ')+str(numero_obstacle))
         f.close()
 
-""" --------------------------- MENU------------------------------- """
 
 class MENU:
     def __init__(self):
@@ -422,15 +418,19 @@ class MENU:
         self.draw_front_menu()
 
     def draw_background_menu(self):
-        bg_image = pygame.image.load('Graphics/menu/background.png').convert_alpha()
-        bg_rect = bg_image.get_rect(center=(cell_size*cell_number/2, cell_size*cell_number/2))
+        bg_image = pygame.image.load(
+            'Graphics/menu/background.png').convert_alpha()
+        bg_rect = bg_image.get_rect(
+            center=(cell_size*cell_number/2, cell_size*cell_number/2))
 
         # RENDER
         screen.blit(bg_image, bg_rect)
-        
+
     def draw_front_menu(self):
-        front_image = pygame.image.load('Graphics/menu/front.png').convert_alpha()
-        front_rect = front_image.get_rect(center=(cell_size*cell_number/2, cell_size*cell_number/2))
+        front_image = pygame.image.load(
+            'Graphics/menu/front.png').convert_alpha()
+        front_rect = front_image.get_rect(
+            center=(cell_size*cell_number/2, cell_size*cell_number/2))
 
         # RENDER
         screen.blit(front_image, front_rect)
@@ -451,8 +451,8 @@ class MENU:
         fichier = open("score/HIGH_SCORE.txt", "r")
         contenu_high = fichier.read()
         fichier.close()
-        
-        # score atteint durant la partie 
+
+        # score atteint durant la partie
         high_text = str('Record actuel : ' + str(contenu_high))
         high_surface = game_font_small.render(high_text, True, (0, 0, 0))
         # position x du high score
@@ -466,10 +466,13 @@ class MENU:
     # -------------------------------------------- SNAKE --------------------------------------------
 
     def draw_snake_preview(self):
-        localisation_skin = 'Graphics/skin/' + str(self.skin)+'/preview/'+str(self.skin)+'.png'
-        skin_actuel = pygame.image.load(localisation_skin).convert_alpha()  # image skin à utiliser
+        localisation_skin = 'Graphics/skin/' + \
+            str(self.skin)+'/preview/'+str(self.skin)+'.png'
+        skin_actuel = pygame.image.load(
+            localisation_skin).convert_alpha()  # image skin à utiliser
         # SKIN
-        skin_actuel_rect = skin_actuel.get_rect(center=((cell_size*cell_number/2)+90, (cell_size*cell_number/2)-10))
+        skin_actuel_rect = skin_actuel.get_rect(
+            center=((cell_size*cell_number/2)+90, (cell_size*cell_number/2)-10))
 
         # RENDER
         screen.blit(skin_actuel, skin_actuel_rect)
@@ -477,13 +480,14 @@ class MENU:
     def draw_skin_selector(self):
         # couleur texte
         couleur_bg = (255, 255, 255)
-        couleur_texte = (220, 220, 220) #---------------------------------------------------------------------------------COULEUR
+        # ---------------------------------------------------------------------------------COULEUR
+        couleur_texte = (220, 220, 220)
         couleur_titre_skin = (255, 255, 255)
         # elements
         zone_cliquable_droite = pygame.rect.Rect(240, 555, 50, 50)
-        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
+        # pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
         zone_cliquable_gauche = pygame.rect.Rect(55, 555, 50, 50)
-        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
+        # pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
 
         # bg_skin_selector = pygame.rect.Rect(105, 565, 130, 50)
         # pygame.draw.rect(screen, couleur_bg, bg_skin_selector)
@@ -584,9 +588,11 @@ class MENU:
 
     def draw_fruit_preview(self):
         localisation_fruit = 'Graphics/fruit/' + str(self.fruit)+'.png'
-        fruit_actuel = pygame.image.load(localisation_fruit).convert_alpha()  # image fruit à utiliser
+        fruit_actuel = pygame.image.load(
+            localisation_fruit).convert_alpha()  # image fruit à utiliser
         # Fruit
-        fruit_actuel_rect = fruit_actuel.get_rect(center=((cell_size*cell_number/2)+180, (cell_size*cell_number/2)-10))
+        fruit_actuel_rect = fruit_actuel.get_rect(
+            center=((cell_size*cell_number/2)+180, (cell_size*cell_number/2)-10))
 
         # RENDER
         screen.blit(fruit_actuel, fruit_actuel_rect)
@@ -598,9 +604,9 @@ class MENU:
         couleur_titre_fruit = (255, 255, 255)
         # elements
         zone_cliquable_droite = pygame.rect.Rect(595, 555, 50, 50)
-        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
+        # pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
         zone_cliquable_gauche = pygame.rect.Rect(380, 555, 50, 50)
-        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
+        # pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
 
         # bg_fruit_selector = pygame.rect.Rect(385, 565, 170, 50)
         # pygame.draw.rect(screen, couleur_bg, bg_fruit_selector)
@@ -707,9 +713,11 @@ class MENU:
 
     def draw_map_preview(self):
         localisation_map = 'Graphics/map/'+str(self.map)+'-preview.png'
-        map_actuel = pygame.image.load(localisation_map).convert_alpha()  # image map à utiliser
+        map_actuel = pygame.image.load(
+            localisation_map).convert_alpha()  # image map à utiliser
         # map
-        map_actuel_rect = map_actuel.get_rect(center=((cell_size*cell_number/2)+110, (cell_size*cell_number/2)-10))
+        map_actuel_rect = map_actuel.get_rect(
+            center=((cell_size*cell_number/2)+110, (cell_size*cell_number/2)-10))
 
         # RENDER
         screen.blit(map_actuel, map_actuel_rect)
@@ -721,9 +729,9 @@ class MENU:
         couleur_titre_map = (255, 255, 255)
         # elements
         zone_cliquable_droite = pygame.rect.Rect(55, 445, 50, 50)
-        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
+        # pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
         zone_cliquable_gauche = pygame.rect.Rect(225, 445, 50, 50)
-        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
+        # pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
 
         # bg_map_selector = pygame.rect.Rect(105, 445, 120, 50)
         # pygame.draw.rect(screen, couleur_bg, bg_map_selector)
@@ -747,7 +755,8 @@ class MENU:
         screen.blit(map_surface, map_rect)
 
     def change_map_plus(self):
-        maps = ['classic', 'desert', 'lune' , 'bleu', 'vert', 'orange', 'rouge', 'rose', 'violet']
+        maps = ['classic', 'desert', 'lune', 'bleu',
+                'vert', 'orange', 'rouge', 'rose', 'violet']
         # combien y a t'il de map
         nb_map_max = len(maps)
 
@@ -776,7 +785,8 @@ class MENU:
             main_game.update_map_from_file()
 
     def change_map_moins(self):
-        maps = ['classic', 'desert', 'lune' , 'bleu', 'vert', 'orange', 'rouge', 'rose', 'violet']
+        maps = ['classic', 'desert', 'lune', 'bleu',
+                'vert', 'orange', 'rouge', 'rose', 'violet']
         # combien y a t'il de map
         nb_map_max = len(maps)
 
@@ -820,7 +830,6 @@ class MENU:
 
 # -------------------------------------------- DIFFICULTÉ --------------------------------------------
 
-
     def draw_diff_selector(self):
         # couleur texte
         couleur_bg = (255, 255, 255)
@@ -828,9 +837,9 @@ class MENU:
         couleur_titre_diff = (255, 255, 255)
         # elements
         zone_cliquable_droite = pygame.rect.Rect(110, 316, 50, 50)
-        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
+        # pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_droite)
         zone_cliquable_gauche = pygame.rect.Rect(290, 316, 50, 50)
-        #pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
+        # pygame.draw.rect(screen, (155, 155, 155), zone_cliquable_gauche)
 
         # bg_diff_selector = pygame.rect.Rect(105, 325, 120, 50)
         # pygame.draw.rect(screen, couleur_bg, bg_diff_selector)
@@ -841,7 +850,8 @@ class MENU:
         # titre skin
         diff_titre_text = str('difficulte')
 
-        diff_surface = game_font_very_very_small.render(diff_text, True, couleur_texte)
+        diff_surface = game_font_very_very_small.render(
+            diff_text, True, couleur_texte)
         diff_rect = diff_surface.get_rect(center=(220, 345))
         # ------------------------------------------#
         # diff_titre_surface = game_font_small.render(
@@ -998,7 +1008,6 @@ class MENU:
         with open(nom_fichier, 'w') as f:
             f.write(reset_chaine)
 
-    
     def reset_obstacles_files(self):
         # reset les valeurs des obstacles
         nom_fichier = "obstacles.txt"
@@ -1006,7 +1015,6 @@ class MENU:
         with open(nom_fichier, 'w') as f:
             f.write(reset_chaine)
 
-""" --------------------------- GAMEOVER------------------------------- """
 
 class GAMEOVER:
     def __init__(self):
@@ -1057,10 +1065,10 @@ class GAMEOVER:
 
         # RENDER
         screen.blit(dead_surface, dead_rect)
-    
+
     def draw_time(self):
         # texte
-        # lit le fichier time 
+        # lit le fichier time
         fichier = open("current_time.txt", "r")
         contenu_current_time = fichier.read()
         fichier.close()
@@ -1162,7 +1170,6 @@ class GAMEOVER:
         # RENDER
         screen.blit(menu_surface, menu_rect)
 
-""" --------------------------- MAIN------------------------------- """
 
 class MAIN:
     # creation du fruit et du serpent
@@ -1299,11 +1306,13 @@ class MAIN:
         screen.blit(titre_surface, titre_rect)
 
     def draw_score(self):
-        fruit = pygame.image.load('Graphics/fruit/'+str(self.fruit.fruit)+'.png').convert_alpha()  # image de fruit
+        fruit = pygame.image.load(
+            'Graphics/fruit/'+str(self.fruit.fruit)+'.png').convert_alpha()  # image de fruit
         # score
         # score en fonction de la taille du serpent (-3 du corps du début)
         score_text = str(len(self.snake.body)-3)
-        score_surface = game_font_medium.render(score_text, True, (255, 255, 255))
+        score_surface = game_font_medium.render(
+            score_text, True, (255, 255, 255))
         score_x = int(cell_size*cell_number - 40)  # position x du score
         score_y = int(cell_size*cell_number - 40)  # position y du score
         score_rect = score_surface.get_rect(center=(score_x, score_y))
@@ -1350,13 +1359,6 @@ class MAIN:
         self.difficulty = str(diff)
         return str(diff)
 
-    def update_files(self):
-        # updtae les valeurs depuis les fichiers
-        self.update_diff_from_file()
-        self.update_fruit_from_file()
-        self.update_map_from_file()
-        self.update_skin_from_file()
-
     def reset_timer(self):
         self.timer = TIMER()
 
@@ -1387,6 +1389,8 @@ SCREEN_UPDATE = pygame.USEREVENT
 # pygame.time.set_timer(SCREEN_UPDATE, fps_game)
 
 # FONCTION QUI CHOISIT LE TAUX DE RAFRAICHISSEMENT ( DONC LA VITESSE) du jeu
+
+
 def change_fps():
     global fps_game
 
@@ -1418,44 +1422,44 @@ def write_stats_in_file():
     fichier = open("score/current_score.txt", "r")
     contenu_current_score = fichier.read()
     fichier.close()
-    
+
     # lit le fichier high score si jamais on l'a dépassé
     fichier = open("score/high_score.txt", "r")
     contenu_current_high_score = fichier.read()
     fichier.close()
-    
-    medaille=''
-    nouveau_high_score='Score à battre: '+str(contenu_current_high_score)
-    if contenu_current_score==contenu_current_high_score:
-        medaille='🥇🥇🥇'
-        nouveau_high_score="Vous avez battu le HIGH SCORE, BRAVO !🥇"
-    
-    # lit le fichier map 
+
+    medaille = ''
+    nouveau_high_score = 'Score à battre: '+str(contenu_current_high_score)
+    if contenu_current_score == contenu_current_high_score:
+        medaille = '🥇🥇🥇'
+        nouveau_high_score = "Vous avez battu le HIGH SCORE, BRAVO !🥇"
+
+    # lit le fichier map
     fichier = open("current_map.txt", "r")
     contenu_current_map = fichier.read()
     fichier.close()
-    
-    # lit le fichier difficulté 
+
+    # lit le fichier difficulté
     fichier = open("current_diff.txt", "r")
     contenu_current_diff = fichier.read()
     fichier.close()
-    
-    # lit le fichier time 
+
+    # lit le fichier time
     fichier = open("current_time.txt", "r")
     contenu_current_time = fichier.read()
     fichier.close()
-    
-    #date actuelle
+
+    # date actuelle
     locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
     now = datetime.datetime.now()
     contenu_current_heure = now.strftime('%d %B %y à %H:%M')
-    
 
     with open("score/stats.txt", 'a') as f:
         # Remet à 0 le score dans le fichier
-        f.write(str('\n') + str('- '*40)+ str('\n')+str('🕦 ')+str(contenu_current_heure) 
-                +str('\n')+str(medaille)+str('🐍 Score: ')+str(contenu_current_score)+str(' points sur la carte 🌍 ')+str(contenu_current_map)
-                +str(' en mode ')+str(contenu_current_diff)+str(' ! La partie a duré ⏳ ')+str(contenu_current_time)+str('\n')+str(nouveau_high_score))
+        f.write(str('\n') + str('- '*40) + str('\n')+str('🕦 ')+str(contenu_current_heure)
+                + str('\n')+str(medaille)+str('🐍 Score: ')+str(contenu_current_score) +
+                str(' points sur la carte 🌍 ')+str(contenu_current_map)
+                + str(' en mode ')+str(contenu_current_diff)+str(' ! La partie a duré ⏳ ')+str(contenu_current_time)+str('\n')+str(nouveau_high_score))
         f.close()
 
 
@@ -1478,7 +1482,7 @@ def play_game():
             if event.type == pygame.QUIT:  # si on click sur la croix on quite le jeu
                 pygame.quit()
                 sys.exit()  # quite tous les sytemes restants
-                
+
             if event.type == SCREEN_UPDATE:
                 main_game.update()
             if event.type == pygame.KEYDOWN:  # quand on press une touche + ON EMPECHE DE POUVOIR SE RETOURNER
@@ -1515,23 +1519,27 @@ def ecran_game_over():
             if event.type == pygame.QUIT:  # si on click sur la croix on quite le jeu
                 pygame.quit()
                 sys.exit()  # quite tous les sytemes restants
-            
+
             if event.type == pygame.KEYDOWN:  # quand on press une touche + ON EMPECHE DE POUVOIR SE RETOURNER
-                if event.key == pygame.K_RETURN:  
+                if event.key == pygame.K_RETURN:
                     play_game()
+                    break
                 if event.key == pygame.K_ESCAPE:
                     menu_du_jeu()
-                
+                    break
+
             if event.type == SCREEN_UPDATE:
                 game_over.update()
 
             # Vérifier si l'utilisateur a cliqué sur le bouton menu pendant le game over
             if event.type == pygame.MOUSEBUTTONUP and zone_cliquable_menu.collidepoint(event.pos):
                 menu_du_jeu()
+                break
 
             # Vérifier si l'utilisateur a cliqué sur le bouton 'relancer' pendant le game over
             if event.type == pygame.MOUSEBUTTONUP and zone_cliquable_relancer.collidepoint(event.pos):
                 play_game()
+                break
 
         screen.fill((19, 10, 19))  # couleur du background
         game_over.draw_elements_game_over()
@@ -1554,16 +1562,16 @@ def menu_du_jeu():
         zone_diff_plus = pygame.rect.Rect(290, 316, 50, 50)
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT : # si on click sur la croix on quite le jeu
+            if event.type == pygame.QUIT:  # si on click sur la croix on quite le jeu
                 pygame.quit()
                 sys.exit()  # quite tous les sytemes restants
             if event.type == SCREEN_UPDATE:
                 game_over.update()
-            
 
-            if event.type == pygame.KEYDOWN:  
-                if event.key == pygame.K_RETURN:  
-                     play_game()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    play_game()
+                    break
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()  # quite tous les sytemes restants
@@ -1571,6 +1579,7 @@ def menu_du_jeu():
             # Vérifier si l'utilisateur a cliqué sur le bouton play
             if event.type == pygame.MOUSEBUTTONUP and zone_cliquable_play.collidepoint(event.pos):
                 play_game()
+                break
 
             # -------------------------------------------------------------------- BOUTONS SKIN-------------------------
 
@@ -1615,9 +1624,16 @@ def menu_du_jeu():
 
         menu_game.draw_elements_menu()
         pygame.display.update()
-        clock.tick(60)  # framerate maximal du jeu
+        clock.tick(60)  # framerate maximal du je
 
 
 # LANCER LE MENU DE DÉPART
-menu_du_jeu()
+# asyncio.run(menu_du_jeu())
 # ecran_game_over()
+
+async def lancer_jeu():
+    menu_du_jeu()
+    pass
+
+
+asyncio.run(lancer_jeu())
